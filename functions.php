@@ -51,83 +51,61 @@ function register_cpt_make_site() {
 	register_post_type( 'make_site', $args );
 }
 
-add_action( 'init', 'load_cmb' );
-function load_cmb() {
-	if ( ! class_exists( 'cmb_Meta_Box' ) )
-		require_once( dirname(__FILE__) . '/inc/custom-meta-boxes.php' );
+add_action( 'add_meta_boxes', 'make_site_add_meta_box' );
+function make_site_add_meta_box() {
+	add_meta_box( 'make_site_properties', 'Site Properties', 'make_site_properties_cb', 'make_site', 'advanced', 'core' );
 }
 
-add_filter( 'cmb_meta_boxes', 'make_site_metaboxes' );
-function make_site_metaboxes( $meta_boxes ) {
+function make_site_properties_cb( $post ) {
+	wp_nonce_field( 'make_site_nonce', 'make_site_nonce' );
+	$weekly_meeting       = get_post_meta( $post->ID, 'weekly_meeting', true );
+	$weekly_meeting_when  = get_post_meta( $post->ID, 'weekly_meeting_when', true );
+	$weekly_meeting_where = get_post_meta( $post->ID, 'weekly_meeting_where', true );
+	?>
+	<table class="form-table">
+		<tbody>
+			<tr>
+				<th><label for="weekly_meeting"><?php esc_html_e( 'Weekly Meeting', 'make-wporg' ); ?></label></th>
+				<td><input type="checkbox" id="weekly_meeting" name="weekly_meeting" value="1" <?php checked( $weekly_meeting, '1' ); ?> /></td>
+			</tr>
+			<tr>
+				<th><label style="margin-left:2em;" for="weekly_meeting_when"><?php esc_html_e( 'When?', 'make-wporg' ); ?></label></th>
+				<td><input class="widefat" type="text" id="weekly_meeting_when" name="weekly_meeting_when" placeholder="Wednesdays @ 20:00 UTC" value="<?php echo esc_attr( $weekly_meeting_when ); ?>" /></td>
+			</tr>
+			<tr>
+				<th><label style="margin-left:2em;" for="weekly_meeting_where"><?php esc_html_e( 'Where?', 'make-wporg' ); ?></label></th>
+				<td><input class="widefat" type="text" id="weekly_meeting_where" name="weekly_meeting_where" placeholder="#wordpress-dev on irc.freenode.net" value="<?php echo esc_attr( $weekly_meeting_where ); ?>" /></td>
+			</tr>
+		</tbody>
+	</table>
+	<?php
+}
 
-	$subsite_options = array(
-		array(
-			'name'  => __( '(select one)', 'make-wporg' ),
-			'value' => '',
-		),
-	);
+add_action( 'save_post', 'make_site_save_postdata' );
+function make_site_save_postdata( $post_id ) {
 
-	if( function_exists( 'get_blog_list' ) ) {
-		foreach( get_blog_list( 1, 'all' ) as $blog ) {
-			$subsite_options[] = array(
-				'name'  => $blog['domain'] . $blog['path'],
-				'value' => $blog['blog_id'],
-			);
-		}
-	} else { // Remove from production, just for development on non-network sites
-		$subsite_options[] = array(
-			'name'  => 'Blog One',
-			'value' => 1,
-		);
-		$subsite_options[] = array(
-			'name'  => 'Blog Two',
-			'value' => 2,
-		);
-		$subsite_options[] = array(
-			'name'  => 'Blog Three',
-			'value' => 3,
-		);
-		$subsite_options[] = array(
-			'name'  => 'Blog Four',
-			'value' => 4,
-		);
+	if ( 'make_site' != $_REQUEST['post_type'] ) {
+		return;
 	}
 
-	$meta_boxes[] = array(
-		'id'         => 'make_site_data',
-		'title'      => 'Site Details',
-		'pages'      => array('make_site'), // post type
-		'context'    => 'normal',
-		'priority'   => 'high',
-		'show_names' => true, // Show field names on the left
-		'fields'     => array(
-			array(
-				'name' => 'Weekly Meeting',
-				'desc' => 'Does this group have a regularly scheduled weekly meeting?',
-				'id'   => 'weekly_meeting',
-				'type' => 'checkbox',
-			),
-			array(
-				'name' => 'When?',
-				'desc' => 'When is the weekly meeting?',
-				'id'   => 'weekly_meeting_when',
-				'type' => 'text',
-			),
-			array(
-				'name' => 'Where?',
-				'desc' => 'Where is the weekly meeting?',
-				'id'   => 'weekly_meeting_where',
-				'type' => 'text',
-			),
-			array(
-				'name' => 'Which blog?',
-				'desc' => 'Which subsite does this entry reference?',
-				'id'   => 'which_subsite',
-				'type' => 'select',
-				'options' => $subsite_options,
-			),
-		),
-	);
+	if ( ! isset( $_POST['make_site_nonce'] ) ) {
+		return;
+	}
 
-	return $meta_boxes;
+	if ( ! wp_verify_nonce( $_POST['make_site_nonce'], 'make_site_nonce' ) ) {
+		return;
+	}
+
+	if ( ! current_user_can( 'edit_post', $post_id ) ) {
+		return;
+	}
+
+
+	$weekly_meeting = empty( $_POST['weekly_meeting'] ) ? '' : '1';
+	$weekly_meeting_when = sanitize_text_field( $_POST['weekly_meeting_when'] );
+	$weekly_meeting_where = sanitize_text_field( $_POST['weekly_meeting_where'] );
+
+	update_post_meta( $post_id, 'weekly_meeting', $weekly_meeting );
+	update_post_meta( $post_id, 'weekly_meeting_when', $weekly_meeting_when );
+	update_post_meta( $post_id, 'weekly_meeting_where', $weekly_meeting_where );
 }
