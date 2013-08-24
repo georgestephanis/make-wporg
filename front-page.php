@@ -1,11 +1,5 @@
 <?php get_header(); ?>
 
-<div id="headline">
-	<div class="wrapper">
-		<h2><a href="<?php echo esc_url( home_url() ); ?>"><?php bloginfo('name'); ?></a></h2>
-	</div>
-</div>
-
 <?php get_template_part( 'masthead' ); ?>
 
 <?php get_template_part( 'subhead' ); ?>
