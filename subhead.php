@@ -3,7 +3,7 @@
 	<div class="wrapper">
 		<?php wp_nav_menu( array( 'theme_location' => 'primary', 'container_class' => 'nav-menu' ) ); ?>
 
-		<?php if( true || class_exists( 'Jetpack' ) && Jetpack::is_module_active( 'subscriptions' ) ) : ?>
+		<?php if( false && class_exists( 'Jetpack' ) && Jetpack::is_module_active( 'subscriptions' ) ) : ?>
 		<?php /* @todo: switch this form over to the Jetpack Subscriptions shortcode */ ?>
 		<?php /* jetpack_do_subscription_form( $args = array() ); */ ?>
 		<form action="#" method="post">
