@@ -13,12 +13,12 @@
 			<article id="site-<?php the_ID(); ?>" <?php post_class(); ?>>
 				<h2><?php the_title(); ?></h2>
 				<?php the_excerpt(); ?>
-				<?php if ( '1' == get_post_meta( get_the_ID(), 'weekly_meeting', true ) ) : ?>
+				<?php /* if ( '1' == get_post_meta( get_the_ID(), 'weekly_meeting', true ) ) : ?>
 					<small>
 						<p><?php printf( __( 'Weekly IRC chats: %s', 'make-wporg' ), get_post_meta( get_the_ID(), 'weekly_meeting_when', true ) ); ?></p>
 						<p><?php echo get_post_meta( get_the_ID(), 'weekly_meeting_where', true ); ?></p>
 					</small>
-				<?php endif; ?>
+				<?php endif; /**/ ?>
 			</article>
 		<?php endwhile; ?>
 
